@@ -28,6 +28,6 @@ fi
 
 mkdir $SRC/arduinojson/build-tests
 cd $SRC/arduinojson/build-tests
-cmake .. -DCMAKE_CXX_FLAGS="-Wno-error=deprecated-literal-operator"
+cmake .. -DCMAKE_CXX_FLAGS="-Wno-error -Wno-unknown-warning-option"
 make -C "extras/tests/" -j$(nproc) || true
 make -C "extras/fuzzing/" -j$(nproc)
