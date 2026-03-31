@@ -16,7 +16,17 @@
 ################################################################################
 
 cd $WORK
-cmake -G Ninja -DBUILD_TESTING=false $SRC/bloaty
+export LIB_FUZZING_ENGINE="-fsanitize=fuzzer"
+cmake -G Ninja \
+  -DBUILD_TESTING=false \
+  -DCMAKE_CXX_COMPILER=clang++ \
+  -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=all" \
+  $SRC/bloaty
 ninja -j$(nproc)
-cp fuzz_target $OUT
-zip -j $OUT/fuzz_target_seed_corpus.zip $SRC/bloaty/tests/testdata/fuzz_corpus/*
+
+for harness in dwarf_leb128_fuzzer elf_symtab_fuzzer dwarf_strtab_fuzzer readfixed_fuzzer elf_section_fuzzer; do
+  cp $WORK/$harness $OUT/
+  zip -j $OUT/${harness}_seed_corpus.zip $SRC/bloaty/extras/fuzzing/${harness%_fuzzer}_corpus/*
+done
+
+
