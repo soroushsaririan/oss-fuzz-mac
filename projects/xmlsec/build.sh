@@ -57,15 +57,15 @@ autoreconf -vfi
 make -j$(nproc) clean
 make -j$(nproc) all V=1
 
-for file in $SRC/xmlsec/tests/oss-fuzz/*_target.c; do
-    b=$(basename $file _target.c)
+for file in $SRC/xmlsec/tests/oss-fuzz/harness_*.c; do
+    b=$(basename $file .c)
     echo -e "#include <stdint.h>\n$(cat $file)" > $file
     $CC $CFLAGS -c $file -I${XMLSEC_DEPS_PATH=}/include/libxml2 -I${XMLSEC_DEPS_PATH=}/include/ -I ./include/ \
-    -o $OUT/${b}_target.o
-    $CXX $CXXFLAGS $OUT/${b}_target.o ./src/.libs/libxmlsec1.a \
+    -o $OUT/${b}.o
+    $CXX $CXXFLAGS $OUT/${b}.o ./src/.libs/libxmlsec1.a \
     ./src/openssl/.libs/libxmlsec1-openssl.a $LIB_FUZZING_ENGINE \
     "$XMLSEC_DEPS_PATH"/lib/libxslt.a "$XMLSEC_DEPS_PATH"/lib/libxml2.a \
     -lz -llzma -o $OUT/${b}_fuzzer
+    cp $SRC/xmlsec/tests/oss-fuzz/config/xmlsec_fuzzer.options $OUT/${b}_fuzzer.options
 done
-cp $SRC/xmlsec/tests/oss-fuzz/config/*.options $OUT/
 wget -O $OUT/xml.dict https://raw.githubusercontent.com/mirrorer/afl/master/dictionaries/xml.dict
