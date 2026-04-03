@@ -32,11 +32,14 @@ export CFLAGS="$CFLAGS -I $(realpath .)"
 export LDFLAGS="-L$(realpath src/.libs/)"
 
 # Build wolfMQTT
+# --enable-v5      : MQTT v5 property decoding paths (required by packet_decode_fuzz)
+# --enable-broker  : broker-side decoders, e.g. MqttDecode_Subscribe (WOLFMQTT_BROKER)
 cd $SRC/wolfmqtt/
 ./autogen.sh
-./configure --enable-static --disable-examples --enable-mqtt5
+./configure --enable-static --disable-examples --enable-v5 --enable-broker
 make -j$(nproc)
 
+# ── Original OSS-Fuzz harness (external, general wolfMQTT client fuzzing) ──────
 $CXX $CXXFLAGS \
     -std=c++17 \
     -I $SRC/fuzzing-headers/include/ \
@@ -47,3 +50,18 @@ $CXX $CXXFLAGS \
     $SRC/wolfssl/src/.libs/libwolfssl.a \
     $LIB_FUZZING_ENGINE \
     -o $OUT/wolfmqtt-fuzzer
+
+# ── In-tree packet-decode harness (targets the 5 injected vulnerabilities) ─────
+$CC $CFLAGS \
+    -DWOLFMQTT_BROKER \
+    -I $SRC/wolfssl/ \
+    -I $SRC/wolfmqtt/ \
+    $SRC/wolfmqtt/tests/fuzz/packet_decode_fuzz.c \
+    $SRC/wolfmqtt/src/.libs/libwolfmqtt.a \
+    $SRC/wolfssl/src/.libs/libwolfssl.a \
+    $LIB_FUZZING_ENGINE \
+    -o $OUT/wolfmqtt-packet-decode-fuzzer
+
+# Bundle the vulnerability seed corpus so OSS-Fuzz uses them as starting inputs
+zip -j $OUT/wolfmqtt-packet-decode-fuzzer_seed_corpus.zip \
+    $SRC/wolfmqtt/tests/fuzz/vuln_seeds/*.bin
