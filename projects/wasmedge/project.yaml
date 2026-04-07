@@ -8,4 +8,5 @@ sanitizers:
   - address
   - memory:
      experimental: True
+  - undefined
 main_repo: 'https://github.com/WasmEdge/WasmEdge.git'
