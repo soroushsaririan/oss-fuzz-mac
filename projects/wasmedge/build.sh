@@ -33,21 +33,33 @@ cmake -GNinja -Bbuild -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DLLD_DIR="/usr/lib/llvm-12/lib/cmake/lld" \
   .
 ninja -C build
-cp -a build/lib/api/libwasmedge*.so* build/tools/fuzz/wasmedge-fuzz* "$OUT"/
+
+# Copy the WasmEdge shared library to $OUT.
+cp -a build/lib/api/libwasmedge*.so* "$OUT"/
 patchelf --set-rpath \$ORIGIN "$OUT"/libwasmedge*.so*
-cd utils/corpus/po
-zip -9 "$OUT/wasmedge-fuzzpo_seed_corpus.zip" -R '*.txt'
-cd -
 
-cd "$SRC/WasmEdge-unittest"
-zip -9 "$OUT/wasmedge-fuzztool_seed_corpus.zip" -R '*.wasm'
-cd -
+# Copy each fuzzing harness to $OUT, fix its rpath, and zip its seed corpus.
+HARNESSES=(
+  mem_oob_store_fuzzer
+  leb128_u64_shift_fuzzer
+  mem_fill_oob_fuzzer
+  mem_setbytes_overflow_fuzzer
+  leb128_u32_shift_fuzzer
+)
 
-for i in build/tools/fuzz/wasmedge-fuzz*; do
-  j="$(basename "$i")"
-  patchelf --set-rpath \$ORIGIN "$OUT/${j}"
+for harness in "${HARNESSES[@]}"; do
+  cp "build/extras/fuzzing/${harness}" "$OUT/"
+  patchelf --set-rpath \$ORIGIN "$OUT/${harness}"
 done
 
+# Package seed corpora (one zip per harness, named <harness>_seed_corpus.zip).
+zip -9 "$OUT/mem_oob_store_fuzzer_seed_corpus.zip"         extras/fuzzing/mem_oob_store_corpus/*
+zip -9 "$OUT/leb128_u64_shift_fuzzer_seed_corpus.zip"      extras/fuzzing/leb128_u64_shift_corpus/*
+zip -9 "$OUT/mem_fill_oob_fuzzer_seed_corpus.zip"          extras/fuzzing/mem_fill_oob_corpus/*
+zip -9 "$OUT/mem_setbytes_overflow_fuzzer_seed_corpus.zip" extras/fuzzing/mem_setbytes_overflow_corpus/*
+zip -9 "$OUT/leb128_u32_shift_fuzzer_seed_corpus.zip"      extras/fuzzing/leb128_u32_shift_corpus/*
+
+# Copy LLVM and system shared libraries needed at runtime.
 for i in libLLVM-12.so.1 libedit.so.2 libbsd.so.0; do
   cp "/usr/lib/x86_64-linux-gnu/${i}" "$OUT/"
   patchelf --set-rpath \$ORIGIN "$OUT/${i}"
