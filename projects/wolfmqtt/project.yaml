@@ -1,7 +1,7 @@
 homepage: "https://www.wolfssl.com/products/wolfmqtt/"
 language: c
 primary_contact: "guidovranken@gmail.com"
-main_repo: "https://github.com/wolfSSL/wolfMQTT"
+main_repo: "https://github.com/IPPD-Testing-Suite/wolfMQTT"
 auto_ccs:
     - "eric@wolfssl.com"
     - "embhorn@gmail.com"
@@ -21,4 +21,3 @@ fuzzing_engines:
   - afl
   - honggfuzz
   - libfuzzer
-
