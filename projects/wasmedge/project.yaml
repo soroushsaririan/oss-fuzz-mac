@@ -6,7 +6,6 @@ auto_ccs:
   - "yiying@secondstate.io"
 sanitizers:
   - address
-  - memory:
-     experimental: True
+  - memory
   - undefined
 main_repo: 'https://github.com/WasmEdge/WasmEdge.git'
