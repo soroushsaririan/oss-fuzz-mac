@@ -24,5 +24,5 @@ RUN apt-get update && apt-get install -y \
     liblld-12-dev
 
 COPY . $SRC/WasmEdge
-COPY external/build.sh $SRC/
+COPY build.sh $SRC/
 WORKDIR $SRC
