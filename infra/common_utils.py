@@ -24,7 +24,7 @@ import constants
 OSS_FUZZ_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 BUILD_DIR = os.path.join(OSS_FUZZ_DIR, 'build')
 
-BASE_RUNNER_IMAGE = 'ghcr.io/aixcc-finals/base-runner'
+BASE_RUNNER_IMAGE = 'gcr.io/oss-fuzz-base/base-runner'
 
 BASE_IMAGES = {
     'generic': [
