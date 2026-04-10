@@ -545,21 +545,12 @@ def get_parser():  # pylint: disable=too-many-statements,too-many-locals
 
 def _check_fuzzer_exists(project, fuzzer_name, args, architecture='x86_64'):
   """Checks if a fuzzer exists."""
-  platform = 'linux/arm64' if architecture == 'aarch64' else 'linux/amd64'
-  command = ['docker', 'run', '--rm', '--platform', platform]
-  command.extend(['-v', '%s:/out:z' % project.out])
-  command.append(_get_base_runner_image(args))
-
-  command.extend(['/bin/bash', '-c', 'test -f /out/%s' % fuzzer_name])
-
-  try:
-    subprocess.check_call(command)
-  except subprocess.CalledProcessError:
-    logger.error('%s does not seem to exist. Please run build_fuzzers first.',
-                 fuzzer_name)
-    return False
-
-  return True
+  fuzzer_path = os.path.join(project.out, fuzzer_name)
+  if os.path.exists(fuzzer_path):
+    return True
+  logger.error('%s does not seem to exist. Please run build_fuzzers first.',
+               fuzzer_name)
+  return False
 
 
 def _normalized_name(name):
