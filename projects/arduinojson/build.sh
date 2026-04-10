@@ -1,33 +1,15 @@
 #!/bin/bash -eu
-# Copyright 2016 Google Inc.
+# Build script for ArduinoJson fuzz targets.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Buttercup mounts the challenge repo (ArduinoJson-mac) at $SRC/arduinojson,
+# which matches the WORKDIR set in the Dockerfile.
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-################################################################################
+# The existing extras/fuzzing/Makefile is already OSS-Fuzz compatible:
+#   - Uses $OUT for output binaries
+#   - Uses $CXX / $CXXFLAGS for compilation
+#   - Uses $LIB_FUZZING_ENGINE for linking
+#   - Packages seed corpora as .zip files
+#   - Writes .options files
 
-# Build fuzzers
-cd extras/fuzzing
-make
-
-# Build unit testing
-if [[ "$SANITIZER" == "memory" ]]
-then
-  # Unit test building with MSAN requires explicit sanitizer flags.
-  export LDFLAGS="-fsanitize=$SANITIZER"
-fi
-
-mkdir $SRC/arduinojson/build-tests
-cd $SRC/arduinojson/build-tests
-cmake .. -DCMAKE_CXX_FLAGS="-Wno-error -Wno-unknown-warning-option"
-make -C "extras/tests/" -j$(nproc) || true
-make -C "extras/fuzzing/" -j$(nproc)
+cd "$SRC/arduinojson/extras/fuzzing"
+make all

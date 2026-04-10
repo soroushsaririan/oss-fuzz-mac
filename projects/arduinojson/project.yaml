@@ -1,11 +1,8 @@
-homepage: "https://github.com/IPPD-Testing-Suite/ArduinoJson"
+homepage: "https://arduinojson.org"
 language: c++
-primary_contact: "benoit.blanchon@gmail.com"
+primary_contact: "soroushsaririan"
+fuzzing_engines:
+  - libfuzzer
 sanitizers:
   - address
-  - memory
   - undefined
-architectures:
-  - x86_64
-  - i386
-main_repo: 'https://github.com/IPPD-Testing-Suite/ArduinoJson.git'
