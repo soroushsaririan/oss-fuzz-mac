@@ -17,12 +17,9 @@
 FROM gcr.io/oss-fuzz-base/base-builder
 
 RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    dpkg-dev \
     ninja-build \
-    llvm-12-dev \
-    liblld-12-dev
+    patchelf
 
-COPY . $SRC/WasmEdge
+# Buttercup mounts the challenge repo (WasmEdge-mac) at /src/wasmedge.
 COPY build.sh $SRC/
-WORKDIR $SRC
+WORKDIR /src/wasmedge

@@ -15,12 +15,20 @@
 #
 ################################################################################
 
+# -fsanitize=function is not supported on aarch64 — strip it from all flag lists
+if [[ "$(uname -m)" == "aarch64" ]]; then
+    export CFLAGS="${CFLAGS//,function/}"
+    export CXXFLAGS="${CXXFLAGS//,function/}"
+fi
+
 export CXXFLAGS="${CXXFLAGS} -Wno-error=invalid-specialization"
 
-cd "$SRC/WasmEdge"
-sed -ie 's@core lto native@core native@' cmake/Helper.cmake
+# Buttercup mounts the challenge repo (WasmEdge-mac) at $SRC/wasmedge.
+cd "$SRC/wasmedge"
+sed -ie 's@core lto native@core native@' cmake/Helper.cmake || true
 cmake -GNinja -Bbuild -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DWASMEDGE_FORCE_DISABLE_LTO=ON \
+  -DWASMEDGE_USE_LLVM=OFF \
   -DWASMEDGE_BUILD_FUZZING=ON \
   -DWASMEDGE_BUILD_TOOLS=OFF \
   -DWASMEDGE_BUILD_TESTS=OFF \
@@ -29,8 +37,6 @@ cmake -GNinja -Bbuild -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_C_COMPILER_RANLIB="$(command -v llvm-ranlib)" \
   -DCMAKE_CXX_COMPILER_AR="$(command -v llvm-ar)" \
   -DCMAKE_CXX_COMPILER_RANLIB="$(command -v llvm-ranlib)" \
-  -DLLVM_DIR="/usr/lib/llvm-12/lib/cmake/llvm" \
-  -DLLD_DIR="/usr/lib/llvm-12/lib/cmake/lld" \
   .
 ninja -C build
 
@@ -58,9 +64,3 @@ zip -9 "$OUT/leb128_u64_shift_fuzzer_seed_corpus.zip"      extras/fuzzing/leb128
 zip -9 "$OUT/mem_fill_oob_fuzzer_seed_corpus.zip"          extras/fuzzing/mem_fill_oob_corpus/*
 zip -9 "$OUT/mem_setbytes_overflow_fuzzer_seed_corpus.zip" extras/fuzzing/mem_setbytes_overflow_corpus/*
 zip -9 "$OUT/leb128_u32_shift_fuzzer_seed_corpus.zip"      extras/fuzzing/leb128_u32_shift_corpus/*
-
-# Copy LLVM and system shared libraries needed at runtime.
-for i in libLLVM-12.so.1 libedit.so.2 libbsd.so.0; do
-  cp "/usr/lib/x86_64-linux-gnu/${i}" "$OUT/"
-  patchelf --set-rpath \$ORIGIN "$OUT/${i}"
-done
