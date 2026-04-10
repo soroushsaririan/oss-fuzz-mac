@@ -4,10 +4,10 @@
 # Buttercup mounts the challenge repo (ArduinoJson-mac) at $SRC/arduinojson,
 # which matches the WORKDIR set in the Dockerfile.
 
-# -fsanitize=function is not supported on aarch64 — strip it if present
+# -fsanitize=function is not supported on aarch64 — strip it from all flag lists
 if [[ "$(uname -m)" == "aarch64" ]]; then
-    export CFLAGS="${CFLAGS//-fsanitize=function/}"
-    export CXXFLAGS="${CXXFLAGS//-fsanitize=function/}"
+    export CFLAGS="${CFLAGS//,function/}"
+    export CXXFLAGS="${CXXFLAGS//,function/}"
 fi
 
 cd "$SRC/arduinojson/extras/fuzzing"
